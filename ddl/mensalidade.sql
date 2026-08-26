@@ -1,5 +1,5 @@
 CREATE TABLE mensalidade (
-    id_mensalidade SERIAL PRIMARY KEY,
+    id int SERIAL PRIMARY KEY,
     mes_referencia VARCHAR(7),
     data_vencimento DATE NOT NULL,
     data_pagamento DATE,
