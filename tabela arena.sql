@@ -40,3 +40,11 @@ CREATE TABLE plano (
     ativo BOOLEAN
 );
 
+CREATE TABLE matricula (
+    id_matricula SERIAL PRIMARY KEY,
+    data_matricula DATE NOT NULL,
+    data_inicio DATE,
+    data_termino DATE,
+    status VARCHAR(30)
+);
+
