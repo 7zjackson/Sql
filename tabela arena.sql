@@ -58,6 +58,16 @@ CREATE TABLE matricula (
     data_termino DATE,
     status VARCHAR(30)
 );
+CREATE TABLE turma (
+    id_turma SERIAL PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL,
+    dia_semana VARCHAR(20),
+    horario_inicio TIME,
+    horario_fim TIME,
+    nivel VARCHAR(30),
+    vagas_maximas INT,
+    ativa BOOLEAN
+);
 
 CREATE TABLE mensalidade (
     id_mensalidade SERIAL PRIMARY KEY,
