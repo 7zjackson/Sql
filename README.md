@@ -35,22 +35,7 @@ Seguimos o artigo Database Naming Standards (DEV Community) que o professor pedi
 
 O banco usado foi PostgreSQL. O script tá em `ddl/tabela_arena.sql`.
 
-Como o professor pediu, nessa etapa ainda não colocamos chave estrangeira, só a estrutura básica de cada tabela mesmo. Isso vai entrar na próxima parte do trabalho quando a gente for ligar as tabelas (tipo matricula indicando de qual aluno e de qual plano ela é).
-
-Pra rodar:
-
-```
-psql -U postgres -d nome_do_banco -f ddl/tabela_arena.sql
-```
-
-## Estrutura das pastas
-
-```
-Sql/
-├── README.md
-└── ddl/
-    └── tabela_arena.sql
-```
+Como o professor pediu, nessa etapa ainda não colocamos chave estrangeira, só a estrutura básica de cada tabela mesmo. Isso vai entrar na próxima parte do trabalho quando a gente for ligar as tabelas (tipo matricula indicando de qual aluno e de qual
 
 ## Sobre o trabalho em grupo
 
