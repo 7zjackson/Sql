@@ -1,5 +1,5 @@
 CREATE TABLE quadra (
-    id_quadra SERIAL PRIMARY KEY,
+    id int SERIAL PRIMARY KEY,
     nome VARCHAR(50) NOT NULL,
     coberta BOOLEAN,
     iluminacao BOOLEAN,
