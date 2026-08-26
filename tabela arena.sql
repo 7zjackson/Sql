@@ -1,4 +1,4 @@
-CREATE TABLE alunos (
+CREATE TABLE aluno (
     id_aluno SERIAL PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     cpf VARCHAR(11) NOT NULL UNIQUE,
