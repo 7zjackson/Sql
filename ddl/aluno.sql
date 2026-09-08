@@ -10,7 +10,7 @@ CREATE TABLE aluno (
     ativo BOOLEAN
 );
 
-DROP TABLE IF EXISTS aluno;
+DROP TABLE IF EXISTS aluno CASCADE;
 
 
 
