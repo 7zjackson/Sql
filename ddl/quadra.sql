@@ -7,4 +7,4 @@ CREATE TABLE quadra (
     ativa BOOLEAN
 );
 
-DROP TABLE IF EXISTS quadra;
+DROP TABLE IF EXISTS quadra CASCADE;
