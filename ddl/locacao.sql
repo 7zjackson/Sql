@@ -8,4 +8,4 @@ forma_pagamento VARCHAR(30),
 status VARCHAR(30)
 );
 
-DROP TABLE IF EXISTS locacao;
+DROP TABLE IF EXISTS locacao CASCADE;
