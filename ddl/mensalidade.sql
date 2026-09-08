@@ -8,4 +8,4 @@ CREATE TABLE mensalidade (
     status VARCHAR(30)
 );
 
-DROP TABLE IF EXISTS mensalidade;
+DROP TABLE IF EXISTS mensalidade CASCADE;
