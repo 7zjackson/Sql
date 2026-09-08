@@ -6,3 +6,4 @@ CREATE TABLE matricula (
     status VARCHAR(30)
 );
 
+DROP TABLE IF EXISTS matricula;
