@@ -7,3 +7,5 @@ valor_total NUMERIC(10, 2),
 forma_pagamento VARCHAR(30),
 status VARCHAR(30)
 );
+
+DROP TABLE IF EXISTS locacao;
