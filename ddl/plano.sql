@@ -7,3 +7,5 @@ CREATE TABLE plano (
     valor NUMERIC(10, 2),
     ativo BOOLEAN
 );
+
+DROP TABLE IF EXISTS plano;
