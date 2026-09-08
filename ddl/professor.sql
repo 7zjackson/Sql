@@ -9,5 +9,5 @@ CREATE TABLE professor (
     ativo BOOLEAN
 );
 
-DROP TABLE IF EXISTS professor;
+DROP TABLE IF EXISTS professor CASCADE;
 
