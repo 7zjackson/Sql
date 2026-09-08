@@ -6,3 +6,5 @@ CREATE TABLE quadra (
     valor_hora NUMERIC(10, 2),
     ativa BOOLEAN
 );
+
+DROP TABLE IF EXISTS quadra;
