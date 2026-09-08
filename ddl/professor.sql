@@ -9,3 +9,5 @@ CREATE TABLE professor (
     ativo BOOLEAN
 );
 
+DROP TABLE IF EXISTS professor;
+
