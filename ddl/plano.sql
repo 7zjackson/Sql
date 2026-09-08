@@ -8,4 +8,4 @@ CREATE TABLE plano (
     ativo BOOLEAN
 );
 
-DROP TABLE IF EXISTS plano;
+DROP TABLE IF EXISTS plano CASCADE;
