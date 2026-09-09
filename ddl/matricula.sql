@@ -9,7 +9,7 @@ data_matricula DATE NOT NULL,
 data_inicio DATE NOT NULL,
 data_termino DATE,
 status VARCHAR(30) DEFAULT 'Ativa',
-FOREIGN KEY (id_aluno) REFERENCES aluno(id_aluno) ON DELETE CASCADE,
-FOREIGN KEY (id_turma) REFERENCES turma(id_turma) ON DELETE CASCADE,
-FOREIGN KEY (id_plano) REFERENCES plano(id_plano) ON DELETE CASCADE
+FOREIGN KEY (id) REFERENCES aluno(id) ON DELETE CASCADE,
+FOREIGN KEY (id) REFERENCES turma(id) ON DELETE CASCADE,
+FOREIGN KEY (id) REFERENCES plano(id) ON DELETE CASCADE
 );
