@@ -8,6 +8,6 @@ horario_inicio TIME NOT NULL,
 horario_fim TIME NOT NULL,
 vagas_maximas INT NOT NULL,
 ativa BOOLEAN DEFAULT TRUE,
-FOREIGN KEY (id_professor) REFERENCES professor(id_professor) ON DELETE CASCADE,
-FOREIGN KEY (id_nivel) REFERENCES nivel_turma(id_nivel) ON DELETE CASCADE
+FOREIGN KEY (id) REFERENCES professor(id) ON DELETE CASCADE,
+FOREIGN KEY (id) REFERENCES nivel_turma(id) ON DELETE CASCADE
 );
