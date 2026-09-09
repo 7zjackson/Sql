@@ -1,5 +1,5 @@
 CREATE TABLE turma (
-id_turma SERIAL PRIMARY KEY,
+id SERIAL PRIMARY KEY,
 id_professor INT NOT NULL,
 id_nivel INT NOT NULL,
 nome VARCHAR(50) NOT NULL,
