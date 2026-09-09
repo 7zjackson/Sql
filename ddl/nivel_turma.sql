@@ -1,4 +1,4 @@
 CREATE TABLE nivel_turma (
-id_nivel SERIAL PRIMARY KEY,
+id SERIAL PRIMARY KEY,
 descricao VARCHAR(50) NOT NULL UNIQUE
 );
