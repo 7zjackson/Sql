@@ -1,15 +1,7 @@
-CREATE TABLE matricula (
-    id int SERIAL PRIMARY KEY,
-    data_matricula DATE NOT NULL,
-    data_inicio DATE,
-    data_termino DATE,
-    status VARCHAR(30)
-);
-
 DROP TABLE IF EXISTS matricula CASCADE;
 
 CREATE TABLE matricula (
-id_matricula SERIAL PRIMARY KEY,
+id SERIAL PRIMARY KEY,
 id_aluno INT NOT NULL,
 id_turma INT NOT NULL,
 id_plano INT NOT NULL,
