@@ -1,11 +1,12 @@
 DROP TABLE IF EXISTS plano CASCADE;
 
 CREATE TABLE plano (
-id SERIAL PRIMARY KEY,
-nome VARCHAR(50) NOT NULL,
-descricao VARCHAR(200),
-frequencia_semanal INT NOT NULL,
-duracao_meses INT NOT NULL,
-valor NUMERIC(10, 2) NOT NULL,
-ativo BOOLEAN DEFAULT TRUE
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL,
+    descricao VARCHAR(200),
+    frequencia_semanal INT NOT NULL,
+    duracao_meses INT NOT NULL,
+    valor NUMERIC(10, 2) NOT NULL,
+    ativo BOOLEAN DEFAULT TRUE
 );
+
