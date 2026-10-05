@@ -1,4 +1,4 @@
 CREATE TABLE forma_pagamento (
-id SERIAL PRIMARY KEY,
-descricao VARCHAR(50) NOT NULL UNIQUE
+    id SERIAL PRIMARY KEY,
+    descricao VARCHAR(50) NOT NULL UNIQUE
 );
