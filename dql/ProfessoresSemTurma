@@ -1,0 +1,4 @@
+SELECT p.id, p.nome
+FROM professor p
+LEFT JOIN turma t ON p.id = t.id_professor
+WHERE t.id IS NULL;
