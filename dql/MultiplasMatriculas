@@ -1,0 +1,7 @@
+SQL
+SELECT a.id, a.nome, COUNT(mat.id) AS total_matriculas_ativas
+FROM aluno a
+JOIN matricula mat ON a.id = mat.id_aluno
+WHERE mat.status = 'Ativa'
+GROUP BY a.id, a.nome
+HAVING COUNT(mat.id) > 1;
