@@ -1,0 +1,8 @@
+SQL
+SELECT pr.nome AS professor, SUM(mes.valor) AS receita_total
+FROM professor pr
+JOIN turma t ON pr.id = t.id_professor
+JOIN matricula mat ON t.id = mat.id_turma
+JOIN mensalidade mes ON mat.id = mes.id_matricula
+WHERE mes.status = 'Pago'
+GROUP BY pr.id, pr.nome;
