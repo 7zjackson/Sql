@@ -1,0 +1,5 @@
+SELECT a.nome, m.valor, m.data_vencimento
+FROM aluno a
+JOIN matricula mat ON a.id = mat.id_aluno
+JOIN mensalidade m ON mat.id = m.id_matricula
+WHERE m.status = 'Pendente' AND m.data_vencimento < CURRENT_DATE;
