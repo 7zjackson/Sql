@@ -1,0 +1,6 @@
+SELECT p.nome AS plano, SUM(m.valor) AS faturamento_total
+FROM plano p
+JOIN matricula mat ON p.id = mat.id_plano
+JOIN mensalidade m ON mat.id = m.id_matricula
+WHERE m.status = 'Pago'
+GROUP BY p.id, p.nome;
