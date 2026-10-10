@@ -1,0 +1,6 @@
+SQL
+SELECT mes_referencia, SUM(valor) AS total_inadimplente
+FROM mensalidade
+WHERE status = 'Pendente' AND data_vencimento < CURRENT_DATE
+GROUP BY mes_referencia
+ORDER BY mes_referencia;
