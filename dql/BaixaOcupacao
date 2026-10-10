@@ -1,0 +1,6 @@
+SQL
+SELECT t.id, t.nome, COUNT(mat.id) AS total_alunos
+FROM turma t
+LEFT JOIN matricula mat ON t.id = mat.id_turma AND mat.status = 'Ativa'
+GROUP BY t.id, t.nome
+HAVING COUNT(mat.id) < 5;
