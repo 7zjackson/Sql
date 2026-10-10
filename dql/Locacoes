@@ -1,0 +1,5 @@
+SELECT q.nome AS quadra, SUM(l.valor_total) AS receita_total
+FROM quadra q
+JOIN locacao l ON q.id = l.id_quadra
+WHERE l.data_locacao >= '2024-01-01' AND l.data_locacao <= '2024-01-31'
+GROUP BY q.id, q.nome;
