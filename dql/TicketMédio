@@ -1,0 +1,4 @@
+SELECT AVG(valor) AS ticket_medio
+FROM mensalidade
+WHERE status = 'Pago' 
+  AND data_pagamento >= CURRENT_DATE - INTERVAL '3 months';
