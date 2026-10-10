@@ -1,0 +1,6 @@
+SELECT pr.nome AS professor, COUNT(DISTINCT mat.id_aluno) AS total_alunos
+FROM professor pr
+LEFT JOIN turma t ON pr.id = t.id_professor
+LEFT JOIN matricula mat ON t.id = mat.id_turma
+GROUP BY pr.id, pr.nome
+ORDER BY total_alunos DESC;
