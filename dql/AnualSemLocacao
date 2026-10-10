@@ -1,0 +1,8 @@
+SELECT DISTINCT a.id, a.nome
+FROM aluno a
+JOIN matricula mat ON a.id = mat.id_aluno
+JOIN plano p ON mat.id_plano = p.id
+WHERE p.nome ILIKE '%Anual%'
+  AND NOT EXISTS (
+      SELECT 1 FROM locacao l WHERE l.id_aluno = a.id
+  );
