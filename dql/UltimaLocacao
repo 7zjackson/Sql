@@ -1,0 +1,5 @@
+SQL
+SELECT a.nome AS aluno, MAX(l.data_locacao) AS ultima_locacao
+FROM aluno a
+LEFT JOIN locacao l ON a.id = l.id_aluno
+GROUP BY a.id, a.nome;
