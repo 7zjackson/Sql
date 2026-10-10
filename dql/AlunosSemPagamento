@@ -1,0 +1,7 @@
+SELECT DISTINCT a.id, a.nome
+FROM aluno a
+JOIN matricula m ON a.id = m.id_aluno
+WHERE NOT EXISTS (
+    SELECT 1 FROM mensalidade mes 
+    WHERE mes.id_matricula = m.id AND mes.status = 'Pago'
+);
