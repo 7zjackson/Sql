@@ -1,0 +1,3 @@
+SELECT q.nome AS quadra,
+       (SELECT COUNT(*) FROM locacao l WHERE l.id_quadra = q.id) AS total_locacoes
+FROM quadra q;
