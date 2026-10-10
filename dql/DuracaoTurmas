@@ -1,0 +1,5 @@
+SQL
+SELECT pr.nome AS professor, AVG(t.horario_fim - t.horario_inicio) AS duracao_media
+FROM professor pr
+JOIN turma t ON pr.id = t.id_professor
+GROUP BY pr.id, pr.nome;
