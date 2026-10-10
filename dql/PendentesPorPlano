@@ -1,0 +1,5 @@
+SELECT p.nome AS plano, COUNT(m.id) AS qtd_pendentes
+FROM plano p
+LEFT JOIN matricula mat ON p.id = mat.id_plano
+LEFT JOIN mensalidade m ON mat.id = m.id_matricula AND m.status = 'Pendente'
+GROUP BY p.id, p.nome;
