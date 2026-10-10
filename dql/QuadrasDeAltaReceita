@@ -1,0 +1,6 @@
+SQL
+SELECT q.nome AS quadra, SUM(l.valor_total) AS receita_total
+FROM quadra q
+JOIN locacao l ON q.id = l.id_quadra
+GROUP BY q.id, q.nome
+HAVING SUM(l.valor_total) > 5000.00;
