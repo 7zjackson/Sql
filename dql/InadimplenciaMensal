@@ -1,4 +1,3 @@
-SQL
 SELECT mes_referencia, SUM(valor) AS total_inadimplente
 FROM mensalidade
 WHERE status = 'Pendente' AND data_vencimento < CURRENT_DATE
