@@ -1,4 +1,3 @@
-SQL
 SELECT a.nome AS aluno, p.nome AS plano
 FROM aluno a
 JOIN matricula mat ON a.id = mat.id_aluno
