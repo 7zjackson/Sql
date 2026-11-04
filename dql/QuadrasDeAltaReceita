@@ -1,4 +1,3 @@
-SQL
 SELECT q.nome AS quadra, SUM(l.valor_total) AS receita_total
 FROM quadra q
 JOIN locacao l ON q.id = l.id_quadra
