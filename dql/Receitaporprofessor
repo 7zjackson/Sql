@@ -1,4 +1,3 @@
-SQL
 SELECT pr.nome AS professor, SUM(mes.valor) AS receita_total
 FROM professor pr
 JOIN turma t ON pr.id = t.id_professor
