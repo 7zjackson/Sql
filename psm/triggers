@@ -1,1 +1,25 @@
+CREATE OR REPLACE FUNCTION fn_tg_impedir_locacao_horario_conflitante()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_conflito INT;
+BEGIN
+    SELECT COUNT(*) INTO v_conflito
+    FROM locacao
+    WHERE id_quadra = NEW.id_quadra
+      AND data_locacao = NEW.data_locacao
+      AND status = 'Confirmada'
+      AND (NEW.hora_inicio < hora_fim AND NEW.hora_fim > hora_inicio)
+      AND (TG_OP = 'INSERT' OR id <> NEW.id);
 
+    IF v_conflito > 0 THEN
+        RAISE EXCEPTION 'Conflito de horário: Já existe uma locação confirmada para esta quadra neste intervalo.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tg_impedir_locacao_horario_conflitante
+BEFORE INSERT OR UPDATE ON locacao
+FOR EACH ROW
+EXECUTE FUNCTION fn_tg_impedir_locacao_horario_conflitante();
