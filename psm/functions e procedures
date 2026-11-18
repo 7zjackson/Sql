@@ -1,0 +1,289 @@
+ALTER TABLE matricula ADD COLUMN IF NOT EXISTS data_cancelamento DATE;
+ALTER TABLE matricula ADD COLUMN IF NOT EXISTS motivo_cancelamento VARCHAR(255);
+
+ALTER TABLE aluno ADD COLUMN IF NOT EXISTS status VARCHAR(30) DEFAULT 'Ativo';
+
+CREATE TABLE IF NOT EXISTS aula (
+    id SERIAL PRIMARY KEY,
+    id_turma INT NOT NULL REFERENCES turma(id) ON DELETE CASCADE,
+    data_aula DATE NOT NULL,
+    realizada BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS presenca (
+    id SERIAL PRIMARY KEY,
+    id_aula INT NOT NULL REFERENCES aula(id) ON DELETE CASCADE,
+    id_aluno INT NOT NULL REFERENCES aluno(id) ON DELETE CASCADE,
+    presente BOOLEAN DEFAULT FALSE
+);
+
+
+CREATE OR REPLACE FUNCTION fc_verificar_disponibilidade_horario(
+    p_id_quadra INT,
+    p_data DATE,
+    p_hora_inicio TIME,
+    p_hora_fim TIME
+) RETURNS BOOLEAN
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_conflito_locacao INT;
+    v_dia_semana VARCHAR(20);
+BEGIN
+    SELECT COUNT(*) INTO v_conflito_locacao
+    FROM locacao
+    WHERE id_quadra = p_id_quadra
+      AND data_locacao = p_data
+      AND status = 'Confirmada'
+      AND (p_hora_inicio < hora_fim AND p_hora_fim > hora_inicio);
+
+    IF v_conflito_locacao > 0 THEN
+        RETURN FALSE;
+    END IF;
+
+    SELECT CASE EXTRACT(DOW FROM p_data)
+        WHEN 0 THEN 'Domingo' WHEN 1 THEN 'Segunda' WHEN 2 THEN 'Terça'
+        WHEN 3 THEN 'Quarta' WHEN 4 THEN 'Quinta' WHEN 5 THEN 'Sexta'
+        WHEN 6 THEN 'Sábado' END INTO v_dia_semana;
+    
+    RETURN TRUE;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION fc_calcular_faturamento_mensal_quadra(
+    p_id_quadra INT,
+    p_mes INT,
+    p_ano INT
+) RETURNS NUMERIC
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_faturamento_locacao NUMERIC := 0;
+    v_faturamento_turmas NUMERIC := 0; 
+BEGIN
+    SELECT COALESCE(SUM(valor_total), 0) INTO v_faturamento_locacao
+    FROM locacao
+    WHERE id_quadra = p_id_quadra
+      AND status = 'Finalizada'
+      AND EXTRACT(MONTH FROM data_locacao) = p_mes
+      AND EXTRACT(YEAR FROM data_locacao) = p_ano;
+
+    RETURN v_faturamento_locacao + v_faturamento_turmas;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION fc_percentual_ocupacao_quadra(
+    p_id_quadra INT,
+    p_data_inicio DATE,
+    p_data_fim DATE,
+    p_horas_operacionais_dia INT DEFAULT 14 
+) RETURNS NUMERIC
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_dias INT;
+    v_horas_totais NUMERIC;
+    v_horas_ocupadas NUMERIC;
+BEGIN
+    v_dias := (p_data_fim - p_data_inicio) + 1;
+    v_horas_totais := v_dias * p_horas_operacionais_dia;
+
+    IF v_horas_totais <= 0 THEN RETURN 0; END IF;
+
+    SELECT COALESCE(SUM(EXTRACT(EPOCH FROM (hora_fim - hora_inicio))/3600), 0) 
+    INTO v_horas_ocupadas
+    FROM locacao
+    WHERE id_quadra = p_id_quadra 
+      AND data_locacao BETWEEN p_data_inicio AND p_data_fim
+      AND status IN ('Confirmada', 'Finalizada');
+
+    RETURN ROUND((v_horas_ocupadas / v_horas_totais) * 100, 2);
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION fc_historico_frequencia_aluno(
+    p_id_aluno INT,
+    p_id_turma INT,
+    p_data_inicio DATE,
+    p_data_fim DATE
+) RETURNS NUMERIC
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_total_aulas INT;
+    v_presencas INT;
+BEGIN
+    SELECT COUNT(*) INTO v_total_aulas
+    FROM aula
+    WHERE id_turma = p_id_turma AND data_aula BETWEEN p_data_inicio AND p_data_fim AND realizada = TRUE;
+
+    IF v_total_aulas = 0 THEN RETURN 0; END IF;
+
+    SELECT COUNT(*) INTO v_presencas
+    FROM presenca p
+    JOIN aula a ON p.id_aula = a.id
+    WHERE a.id_turma = p_id_turma 
+      AND p.id_aluno = p_id_aluno 
+      AND p.presente = TRUE
+      AND a.data_aula BETWEEN p_data_inicio AND p_data_fim;
+
+    RETURN ROUND((v_presencas::NUMERIC / v_total_aulas::NUMERIC) * 100, 2);
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION fc_calcular_total_devido_aluno(
+    p_id_aluno INT
+) RETURNS NUMERIC
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_total_mensalidades NUMERIC := 0;
+    v_total_locacoes NUMERIC := 0;
+BEGIN
+    SELECT COALESCE(SUM(
+        valor + (valor * 0.02) + (valor * 0.02 * (CURRENT_DATE - data_vencimento)/30.0)
+    ), 0) INTO v_total_mensalidades
+    FROM mensalidade m
+    JOIN matricula mat ON m.id_matricula = mat.id
+    WHERE mat.id_aluno = p_id_aluno 
+      AND m.status = 'Pendente' 
+      AND m.data_vencimento < CURRENT_DATE;
+
+    SELECT COALESCE(SUM(valor_total), 0) INTO v_total_locacoes
+    FROM locacao
+    WHERE id_aluno = p_id_aluno AND status = 'Pendente de Pagamento';
+
+    RETURN v_total_mensalidades + v_total_locacoes;
+END;
+$$;
+
+
+CREATE OR REPLACE PROCEDURE sp_registrar_locacao_quadra(
+    p_id_aluno INT,
+    p_id_quadra INT,
+    p_id_forma_pagamento INT,
+    p_data DATE,
+    p_hora_inicio TIME,
+    p_hora_fim TIME
+)
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_valor_hora NUMERIC;
+    v_valor_total NUMERIC;
+    v_horas NUMERIC;
+BEGIN
+    IF NOT fc_verificar_disponibilidade_horario(p_id_quadra, p_data, p_hora_inicio, p_hora_fim) THEN
+        RAISE EXCEPTION 'A quadra já está ocupada neste horário.';
+    END IF;
+
+    SELECT valor_hora INTO v_valor_hora FROM quadra WHERE id = p_id_quadra;
+    
+    v_horas := EXTRACT(EPOCH FROM (p_hora_fim - p_hora_inicio)) / 3600;
+    v_valor_total := v_valor_hora * v_horas;
+
+    INSERT INTO locacao (id_aluno, id_quadra, id_forma_pagamento, data_locacao, hora_inicio, hora_fim, valor_total, status)
+    VALUES (p_id_aluno, p_id_quadra, p_id_forma_pagamento, p_data, p_hora_inicio, p_hora_fim, v_valor_total, 'Confirmada');
+END;
+$$;
+
+
+CREATE OR REPLACE PROCEDURE sp_processar_pagamento_mensalidade(
+    p_id_mensalidade INT,
+    p_valor_quitado NUMERIC
+)
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_valor_cobrado NUMERIC;
+    v_id_aluno INT;
+BEGIN
+    SELECT m.valor, mat.id_aluno INTO v_valor_cobrado, v_id_aluno
+    FROM mensalidade m
+    JOIN matricula mat ON m.id_matricula = mat.id
+    WHERE m.id = p_id_mensalidade;
+
+    IF v_valor_quitado < v_valor_cobrado THEN
+        RAISE EXCEPTION 'Valor quitado é menor que o valor do plano contratado (Devido: %)', v_valor_cobrado;
+    END IF;
+
+    UPDATE mensalidade 
+    SET status = 'Pago', data_pagamento = CURRENT_DATE 
+    WHERE id = p_id_mensalidade;
+
+    UPDATE aluno SET status = 'Em dia' WHERE id = v_id_aluno;
+END;
+$$;
+
+
+CREATE OR REPLACE PROCEDURE sp_cancelar_matricula_aluno(
+    p_id_matricula INT,
+    p_motivo VARCHAR(255)
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    UPDATE matricula 
+    SET status = 'Cancelada', 
+        data_termino = CURRENT_DATE,
+        data_cancelamento = CURRENT_DATE,
+        motivo_cancelamento = p_motivo
+    WHERE id = p_id_matricula;
+
+    DELETE FROM mensalidade 
+    WHERE id_matricula = p_id_matricula 
+      AND status = 'Pendente' 
+      AND data_vencimento > CURRENT_DATE;
+END;
+$$;
+
+
+CREATE OR REPLACE PROCEDURE sp_gerar_mensalidades_lote(
+    p_mes_referencia VARCHAR(7),
+    p_dia_vencimento INT DEFAULT 10
+)
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_matricula RECORD;
+    v_data_vencimento DATE;
+BEGIN
+    v_data_vencimento := TO_DATE(p_mes_referencia || '-' || LPAD(p_dia_vencimento::TEXT, 2, '0'), 'YYYY-MM-DD');
+
+    FOR v_matricula IN 
+        SELECT m.id AS id_matricula, p.valor 
+        FROM matricula m
+        JOIN plano p ON m.id_plano = p.id
+        WHERE m.status = 'Ativa'
+    LOOP
+        IF NOT EXISTS (
+            SELECT 1 FROM mensalidade 
+            WHERE id_matricula = v_matricula.id_matricula AND mes_referencia = p_mes_referencia
+        ) THEN
+            INSERT INTO mensalidade (id_matricula, id_forma_pagamento, mes_referencia, data_vencimento, valor, status)
+            VALUES (v_matricula.id_matricula, 1, p_mes_referencia, v_data_vencimento, v_matricula.valor, 'Pendente');
+        END IF;
+    END LOOP;
+END;
+$$;
+
+
+CREATE OR REPLACE PROCEDURE sp_bloquear_alunos_inadimplentes()
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_aluno RECORD;
+BEGIN
+    FOR v_aluno IN 
+        SELECT DISTINCT mat.id_aluno
+        FROM mensalidade m
+        JOIN matricula mat ON m.id_matricula = mat.id
+        WHERE m.status = 'Pendente' 
+          AND CURRENT_DATE - m.data_vencimento > 30
+    LOOP
+        UPDATE aluno SET status = 'Bloqueado', ativo = FALSE WHERE id = v_aluno.id_aluno;
+
+        UPDATE locacao 
+        SET status = 'Cancelada' 
+        WHERE id_aluno = v_aluno.id_aluno 
+          AND data_locacao >= CURRENT_DATE 
+          AND status = 'Confirmada';
+          
+        RAISE NOTICE 'Aluno ID % foi bloqueado por inadimplência.', v_aluno.id_aluno;
+    END LOOP;
+END;
+$$;
