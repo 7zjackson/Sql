@@ -24,7 +24,6 @@ BEFORE INSERT OR UPDATE ON locacao
 FOR EACH ROW
 EXECUTE FUNCTION fn_tg_impedir_locacao_horario_conflitante();
 
-
 CREATE OR REPLACE FUNCTION fn_tg_atualizar_status_aluno_inadimplente()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -41,3 +40,19 @@ CREATE TRIGGER tg_atualizar_status_aluno_inadimplente
 AFTER INSERT OR UPDATE ON mensalidade
 FOR EACH ROW
 EXECUTE FUNCTION fn_tg_atualizar_status_aluno_inadimplente();
+
+CREATE OR REPLACE FUNCTION fn_tg_log_alteracao_valor_plano()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.valor <> NEW.valor OR OLD.descricao <> NEW.descricao THEN
+        INSERT INTO auditoria_plano (id_plano, usuario, valor_antigo, valor_novo, descricao_antiga, descricao_nova)
+        VALUES (OLD.id, current_user, OLD.valor, NEW.valor, OLD.descricao, NEW.descricao);
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tg_log_alteracao_valor_plano
+AFTER UPDATE ON plano
+FOR EACH ROW
+EXECUTE FUNCTION fn_tg_log_alteracao_valor_plano();
