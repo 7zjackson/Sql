@@ -56,3 +56,39 @@ CREATE TRIGGER tg_log_alteracao_valor_plano
 AFTER UPDATE ON plano
 FOR EACH ROW
 EXECUTE FUNCTION fn_tg_log_alteracao_valor_plano();
+CREATE OR REPLACE FUNCTION fn_tg_bloquear_reserva_aluno_bloqueado()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_status_aluno VARCHAR(30);
+BEGIN
+    SELECT status INTO v_status_aluno
+    FROM aluno
+    WHERE id = NEW.id_aluno;
+
+    IF v_status_aluno IN ('Inadimplente', 'Bloqueado') THEN
+        RAISE EXCEPTION 'Operação negada: O aluno encontra-se com o status "%" e não pode realizar novas locações.', v_status_aluno;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tg_bloquear_reserva_aluno_bloqueado
+BEFORE INSERT OR UPDATE ON locacao
+FOR EACH ROW
+EXECUTE FUNCTION fn_tg_bloquear_reserva_aluno_bloqueado();
+
+CREATE OR REPLACE FUNCTION fn_tg_incrementar_vagas_cancelamento_matricula()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (OLD.status = 'Ativa' AND NEW.status IN ('Cancelada', 'Inativa')) THEN
+        RAISE NOTICE 'Matrícula ID % cancelada. Vaga liberada na turma ID %.', NEW.id, NEW.id_turma;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tg_incrementar_vagas_cancelamento_matricula
+AFTER UPDATE ON matricula
+FOR EACH ROW
+EXECUTE FUNCTION fn_tg_incrementar_vagas_cancelamento_matricula();
